@@ -5,6 +5,8 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./interfaces/ITokenVesting.sol";
 
 /**
  * @title VestingWallet
@@ -16,11 +18,11 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * Consequently, if the vesting has already started, any amount of tokens sent to this contract will (at least partly)
  * be immediately releasable.
  */
-contract VestingWallet is Context {
-    event ERC20Released(address indexed token, uint256 amount);
+contract VestingWallet is ITokenVesting, Context {
+    event TokensClaimed(address indexed beneficiary, uint256 amount);
 
-    mapping(address => uint256) internal _erc20Released;
-    address internal immutable _beneficiary;
+    mapping(address => uint256) internal vestedTokensOf;
+    mapping(address => uint256) internal claimedOf;
     uint64 internal immutable _start;
     uint64 internal _duration;
 
@@ -28,15 +30,23 @@ contract VestingWallet is Context {
 
     uint256 internal _freeTokensAmount;
 
+    IERC20 public override token;
+
     constructor(
-        address beneficiaryAddress,
+        address _tokenAddress,
+        address[] memory beneficiaries,
+        uint256[] memory balances,
         uint64 startTimestamp,
         uint64 durationSeconds,
         uint256 cliffPeriod,
         uint256 freeTokensAmount
-    ) payable {
-        require(beneficiaryAddress != address(0), "VestingWallet: beneficiary is zero address");
-        _beneficiary = beneficiaryAddress;
+    ) {
+        require(_tokenAddress != address(0), "VestingWallet: token is zero address");
+        token = IERC20(_tokenAddress);
+
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            vestedTokensOf[beneficiaries[i]] = balances[i];
+        }
         _start = startTimestamp;
         _duration = durationSeconds;
         _cliff = _start + cliffPeriod;
@@ -44,19 +54,14 @@ contract VestingWallet is Context {
     }
 
     /**
-     * @dev The contract should be able to receive Eth.
+     * @dev Returns whether an address is a beneficiary for this contract.
      */
-    receive() external payable virtual {}
-
-    /**
-     * @dev Getter for the beneficiary address.
-     */
-    function beneficiary() public view virtual returns (address) {
-        return _beneficiary;
+    function isBeneficiary(address user) public view virtual returns (bool) {
+        return vestedTokensOf[user] > 0;
     }
 
     /**
-     * @dev Getter for the beneficiary address.
+     * @dev Getter for the cliff period.
      */
     function cliff() public view virtual returns (uint256) {
         return _cliff;
@@ -84,18 +89,18 @@ contract VestingWallet is Context {
     }
 
     /**
-     * @dev Amount of token already released
+     * @dev Amount of token already released for a particular beneficiary.
      */
-    function released(address token) public view virtual returns (uint256) {
-        return _erc20Released[token];
+    function released(address beneficiary) public view virtual returns (uint256) {
+        return claimedOf[beneficiary];
     }
 
     /**
      * @dev Getter for the amount of releasable `token` tokens. `token` should be the address of an
      * IERC20 contract.
      */
-    function releasable(address token) public view virtual returns (uint256) {
-        return vestedAmount(token, uint64(block.timestamp)) - released(token);
+    function releasable(address beneficiary) public view virtual returns (uint256) {
+        return vestedAmount(beneficiary, uint64(block.timestamp)) - released(beneficiary);
     }
 
     /**
@@ -103,19 +108,19 @@ contract VestingWallet is Context {
      *
      * Emits a {ERC20Released} event.
      */
-    function release(address token) public virtual {
-        uint256 amount = releasable(token);
-        _erc20Released[token] += amount;
-        emit ERC20Released(token, amount);
-        SafeERC20.safeTransfer(IERC20(token), beneficiary(), amount);
+    function release(address beneficiary) public virtual {
+        uint256 amount = releasable(beneficiary);
+        claimedOf[beneficiary] += amount;
+        emit TokensClaimed(beneficiary, amount);
+        SafeERC20.safeTransfer(token, beneficiary, amount);
     }
 
     /**
      * @dev Calculates the amount of tokens that has already vested. Default implementation is a linear vesting curve.
      * @dev The total amount of tokens that will be distributed linearly is the token balance of the contract - freeTokensAmount.
      */
-    function vestedAmount(address token, uint64 timestamp) public view virtual returns (uint256) {
-        return _vestingSchedule(IERC20(token).balanceOf(address(this)) - _freeTokensAmount + released(token), timestamp);
+    function vestedAmount(address beneficiary, uint64 timestamp) public view virtual returns (uint256) {
+        return _vestingSchedule(token.balanceOf(address(this)) - _freeTokensAmount + released(beneficiary), timestamp);
     }
 
     /**
