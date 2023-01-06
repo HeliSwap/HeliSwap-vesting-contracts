@@ -37,7 +37,7 @@ contract TokenVesting is Ownable, VestingWallet {
      * @param startTimestamp Start timestamp of the linear distribution.
      * @param durationSeconds Duration of the linear distribution.
      * @param cliff Timestamp after which a beneficiary can actually claim any unlocked tokens.
-     * @param freeTokensAmount Amount of tokens that the beneficiaryAddress can claim right away without waiting.
+     * @param freeTokensPercentage Percentage of the tokens that the beneficiaryAddress can claim right away without waiting.
      */
     constructor(
         address tokenAddress,
@@ -45,7 +45,7 @@ contract TokenVesting is Ownable, VestingWallet {
         address[] memory beneficiaries,
         uint256[] memory balances,
         uint256 cliff,
-        uint256 freeTokensAmount,
+        uint256 freeTokensPercentage,
         uint64 startTimestamp,
         uint64 durationSeconds
     )
@@ -53,10 +53,10 @@ contract TokenVesting is Ownable, VestingWallet {
             tokenAddress,
             beneficiaries,
             balances,
-            startTimestamp,
-            durationSeconds,
             cliff,
-            freeTokensAmount
+            freeTokensPercentage,
+            startTimestamp,
+            durationSeconds 
         )
     {
         require(
@@ -86,13 +86,12 @@ contract TokenVesting is Ownable, VestingWallet {
     }
 
     /**
-     * @dev Increases the tokens for distribution for the beneficiary with the option to add free tokens.
+     * @dev Increases the tokens for distribution for а beneficiary.
      *
      * Emits a {TokensIncreased} event.
      */
-    function addTokens(address beneficiary, uint256 amount, uint256 freeTokensAmount) external onlyOwner {
+    function addTokens(address beneficiary, uint256 amount) external onlyOwner {
         SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
-        _freeTokensAmount += freeTokensAmount;
         vestedTokensOf[beneficiary] += amount;
         emit TokensIncreased(beneficiary, amount);
     }
@@ -103,22 +102,10 @@ contract TokenVesting is Ownable, VestingWallet {
      * Emits a {TokensClaimed} event.
      */
     function claim() public override onlyBeneficiaryOrOwner {
-        uint256 amount = releasable(token);
+        uint256 amount = claimable(msg.sender);
         claimedOf[msg.sender] += amount;
-        emit TokensClaimed(msg.sender, amount);
         SafeERC20.safeTransfer(IERC20(token), msg.sender, amount);
-    }
-
-    /**
-     * @dev Release free tokens to the beneficiary.
-     *
-     * Emits a {ERC20Released} event.
-     */
-    function claimFreeTokens(address token) public onlyBeneficiaryOrOwner {
-        _erc20Released[token] += _freeTokensAmount;
-        emit ERC20Released(token, _freeTokensAmount);
-        SafeERC20.safeTransfer(IERC20(token), beneficiary(), _freeTokensAmount);
-        _freeTokensAmount = 0;
+        emit TokensClaimed(msg.sender, amount);
     }
 
     function timelock() external view returns(address) {

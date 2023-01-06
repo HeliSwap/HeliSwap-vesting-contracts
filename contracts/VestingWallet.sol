@@ -28,7 +28,7 @@ contract VestingWallet is ITokenVesting, Context {
 
     uint256 internal _cliff;
 
-    uint256 internal _freeTokensAmount;
+    uint256 internal _freeTokensPercentage;
 
     IERC20 public override token;
 
@@ -36,10 +36,10 @@ contract VestingWallet is ITokenVesting, Context {
         address _tokenAddress,
         address[] memory beneficiaries,
         uint256[] memory balances,
-        uint64 startTimestamp,
-        uint64 durationSeconds,
         uint256 cliffPeriod,
-        uint256 freeTokensAmount
+        uint256 freeTokensPercentage,
+        uint64 startTimestamp,
+        uint64 durationSeconds
     ) {
         require(_tokenAddress != address(0), "VestingWallet: token is zero address");
         token = IERC20(_tokenAddress);
@@ -50,7 +50,7 @@ contract VestingWallet is ITokenVesting, Context {
         _start = startTimestamp;
         _duration = durationSeconds;
         _cliff = _start + cliffPeriod;
-        _freeTokensAmount = freeTokensAmount;
+        _freeTokensPercentage = freeTokensPercentage;
     }
 
     /**
@@ -82,10 +82,10 @@ contract VestingWallet is ITokenVesting, Context {
     }
 
     /**
-     * @dev Getter for the free tokens amount.
+     * @dev Getter for the free tokens percentage.
      */
-    function freeTokens() external view virtual returns (uint256) {
-        return _freeTokensAmount;
+    function freeTokensPercentage() external view virtual returns (uint256) {
+        return _freeTokensPercentage;
     }
 
     /**
@@ -96,23 +96,23 @@ contract VestingWallet is ITokenVesting, Context {
     }
 
     /**
-     * @dev Getter for the amount of releasable `token` tokens. `token` should be the address of an
+     * @dev Getter for the amount of claimable `token` tokens. `token` should be the address of an
      * IERC20 contract.
      */
-    function releasable(address beneficiary) public view virtual returns (uint256) {
+    function claimable(address beneficiary) public view virtual returns (uint256) {
         return vestedAmount(beneficiary, uint64(block.timestamp)) - released(beneficiary);
     }
 
     /**
-     * @dev Release the tokens that have already vested.
+     * @dev Claim the tokens that have already vested.
      *
      * Emits a {ERC20Released} event.
      */
-    function release(address beneficiary) public virtual {
-        uint256 amount = releasable(beneficiary);
-        claimedOf[beneficiary] += amount;
-        emit TokensClaimed(beneficiary, amount);
-        SafeERC20.safeTransfer(token, beneficiary, amount);
+    function claim() public virtual {
+        uint256 amount = claimable(msg.sender);
+        claimedOf[msg.sender] += amount;
+        emit TokensClaimed(msg.sender, amount);
+        SafeERC20.safeTransfer(token, msg.sender, amount);
     }
 
     /**
@@ -120,7 +120,9 @@ contract VestingWallet is ITokenVesting, Context {
      * @dev The total amount of tokens that will be distributed linearly is the token balance of the contract - freeTokensAmount.
      */
     function vestedAmount(address beneficiary, uint64 timestamp) public view virtual returns (uint256) {
-        return _vestingSchedule(token.balanceOf(address(this)) - _freeTokensAmount + released(beneficiary), timestamp);
+        uint256 initialUnlock = vestedTokensOf[beneficiary] / _freeTokensPercentage;
+        uint256 currentTokensToClaim = _vestingSchedule(vestedTokensOf[beneficiary] - initialUnlock, timestamp);
+        return initialUnlock + currentTokensToClaim;
     }
 
     /**

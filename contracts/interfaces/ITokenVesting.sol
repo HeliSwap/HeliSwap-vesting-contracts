@@ -5,4 +5,5 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ITokenVesting {
     function token() external view returns(IERC20);
+    function claim() external view returns(uint256);
 }
