@@ -27,7 +27,7 @@ contract TokenVesting is Ownable, VestingWallet {
 
     event TimelockAddressChanged(address oldAddress, address newAddress);
     event FailSafeOccurred();
-    event TokensIncreased(address beneficiary, uint256 amount);
+    event VestingTokensIncreased(address beneficiary, uint256 amount);
 
      /**
      * @param tokenAddress The address of the token that is to be vested.
@@ -37,7 +37,7 @@ contract TokenVesting is Ownable, VestingWallet {
      * @param startTimestamp Start timestamp of the linear distribution.
      * @param durationSeconds Duration of the linear distribution.
      * @param cliff Timestamp after which a beneficiary can actually claim any unlocked tokens.
-     * @param freeTokensPercentage Percentage of the tokens that the beneficiaryAddress can claim right away without waiting.
+     * @param freeTokensPercentage Percentage of the total scheduled tokens for each beneficiary that are unlocked initially without waiting any time.
      */
     constructor(
         address tokenAddress,
@@ -62,7 +62,7 @@ contract TokenVesting is Ownable, VestingWallet {
         require(
             beneficiaries.length == balances.length, "Constructor :: Holders and balances differ"
         );
-        require(_timelock != address(0), "VestingWallet: timelock is zero address");
+        require(timelockAddress != address(0), "VestingWallet: timelock is zero address");
         _timelock = timelockAddress;
     }
 
@@ -70,7 +70,7 @@ contract TokenVesting is Ownable, VestingWallet {
      * @dev Changes the duration of the vesting schedule.
      * @dev Only triggerable by the timelock.
      */
-    function updateDuration(uint64 duration) external onlyTimelock {
+    function updateDuration(uint64 duration) external override onlyTimelock {
         _duration = duration;
     }
 
@@ -80,7 +80,7 @@ contract TokenVesting is Ownable, VestingWallet {
      *
      * Emits a {FailSafeOccurred} event.
      */
-    function failSafe() external onlyTimelock {
+    function failSafe() external override onlyTimelock {
         SafeERC20.safeTransfer(token, owner(), token.balanceOf(address(this)));
         emit FailSafeOccurred();
     }
@@ -88,12 +88,12 @@ contract TokenVesting is Ownable, VestingWallet {
     /**
      * @dev Increases the tokens for distribution for а beneficiary.
      *
-     * Emits a {TokensIncreased} event.
+     * Emits a {VestingTokensIncreased} event.
      */
-    function addTokens(address beneficiary, uint256 amount) external onlyOwner {
+    function addTokens(address beneficiary, uint256 amount) external override onlyOwner {
         SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
         vestedTokensOf[beneficiary] += amount;
-        emit TokensIncreased(beneficiary, amount);
+        emit VestingTokensIncreased(beneficiary, amount);
     }
 
     /**
@@ -108,11 +108,11 @@ contract TokenVesting is Ownable, VestingWallet {
         emit TokensClaimed(msg.sender, amount);
     }
 
-    function timelock() external view returns(address) {
+    function timelock() external override view returns(address) {
         return _timelock;
     }
 
-    // TODO: Do we want it to be changeable ?
+    // TODO: Do we want it to be changeable ? Maybe no need
     function changeTimelockAddress(address _newTimelockAddress) external onlyOwner {
         emit TimelockAddressChanged(_timelock, _newTimelockAddress);
         _timelock = _newTimelockAddress;

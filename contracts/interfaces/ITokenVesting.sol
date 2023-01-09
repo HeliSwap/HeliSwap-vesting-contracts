@@ -5,5 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ITokenVesting {
     function token() external view returns(IERC20);
-    function claim() external view returns(uint256);
+    function timelock() external view returns(address);
+    function claim() external;
+    function addTokens(address beneficiary, uint256 amount) external;
+    function failSafe() external;
+    function updateDuration(uint64 duration) external;
+    function scheduledTokens(address beneficiary) external view returns(uint256);
 }

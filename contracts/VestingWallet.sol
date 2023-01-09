@@ -104,6 +104,13 @@ contract VestingWallet is ITokenVesting, Context {
     }
 
     /**
+     * @dev Getter for the amount of scheduled tokens to vest for a beneficiary.
+     */
+    function scheduledTokens(address beneficiary) public view virtual returns (uint256) {
+        return vestedTokensOf[beneficiary];
+    }
+
+    /**
      * @dev Claim the tokens that have already vested.
      *
      * Emits a {ERC20Released} event.
@@ -138,4 +145,30 @@ contract VestingWallet is ITokenVesting, Context {
             return (totalAllocation * (timestamp - start())) / duration();
         }
     }
+
+    /**
+     * @dev Changes the duration of the vesting schedule.
+     * @dev Only triggerable by the timelock.
+     */
+    function updateDuration(uint64 duration) external virtual {
+        _duration = duration;
+    }
+
+    /**
+     * @dev Increases the tokens for distribution for а beneficiary.
+     *
+     * Emits a {TokensIncreased} event.
+     */
+    function addTokens(address beneficiary, uint256 amount) external virtual {
+        SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
+        vestedTokensOf[beneficiary] += amount;
+    }
+
+    /**
+     * @dev Stops the distribution of the tokens in case something is wrong with the contract and transfers all left tokens back to the owner.
+     * @dev Only triggerable by the timelock.
+     */
+    function failSafe() external virtual {}
+
+    function timelock() external virtual view returns(address) {}
 }
