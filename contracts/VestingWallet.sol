@@ -8,16 +8,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/ITokenVesting.sol";
 
-/**
- * @title VestingWallet
- * @dev This contract handles the vesting of Eth and ERC20 tokens for a given beneficiary. Custody of multiple tokens
- * can be given to this contract, which will release the token to the beneficiary following a given vesting schedule.
- * The vesting schedule is customizable through the {vestedAmount} function.
- *
- * Any token transferred to this contract will follow the vesting schedule as if they were locked from the beginning.
- * Consequently, if the vesting has already started, any amount of tokens sent to this contract will (at least partly)
- * be immediately releasable.
- */
 contract VestingWallet is ITokenVesting, Context {
     event TokensClaimed(address indexed beneficiary, uint256 amount);
 
@@ -96,8 +86,7 @@ contract VestingWallet is ITokenVesting, Context {
     }
 
     /**
-     * @dev Getter for the amount of claimable `token` tokens. `token` should be the address of an
-     * IERC20 contract.
+     * @dev Getter for the amount of claimable tokens for a beneficiary.
      */
     function claimable(address beneficiary) public view virtual returns (uint256) {
         return vestedAmount(beneficiary, uint64(block.timestamp)) - released(beneficiary);
@@ -123,8 +112,9 @@ contract VestingWallet is ITokenVesting, Context {
     }
 
     /**
-     * @dev Calculates the amount of tokens that has already vested. Default implementation is a linear vesting curve.
-     * @dev The total amount of tokens that will be distributed linearly is the token balance of the contract - freeTokensAmount.
+     * @dev Calculates the amount of tokens that has already vested for the beneficiary. Default implementation is a linear vesting curve.
+     * @dev The total amount of tokens that will be distributed linearly to the beneficiary is the allocated balance in vestedTokensOf mapping minus the free tokens
+     * which are percent of his total vesting tokens.
      */
     function vestedAmount(address beneficiary, uint64 timestamp) public view virtual returns (uint256) {
         uint256 initialUnlock = vestedTokensOf[beneficiary] / _freeTokensPercentage;
@@ -156,8 +146,6 @@ contract VestingWallet is ITokenVesting, Context {
 
     /**
      * @dev Increases the tokens for distribution for а beneficiary.
-     *
-     * Emits a {TokensIncreased} event.
      */
     function addTokens(address beneficiary, uint256 amount) external virtual {
         SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);

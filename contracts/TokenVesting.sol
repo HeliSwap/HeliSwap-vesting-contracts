@@ -8,6 +8,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 error TokenVesting__OnlyBeneficiaryAndOwnerHaveRights();
 error TokenVesting__OnlyCallableByTimelock();
 
+/**
+ * @title TokenVesting
+ * @dev This contract handles the vesting of an ERC20 token for multiple beneficiaries. Custody of the token
+ * should be given to this contract, which will release the token to a beneficiary following a given vesting schedule.
+ * The vesting schedule is customizable through the {vestedAmount} function.
+ *
+ * The token transferred to this contract will follow the vesting schedule as if it was locked from the beginning.
+ * The contract takes into account a cliff period after which the actual claiming of any unlocked tokens should begin.
+ * Some percentage of the total tokens allocated for distribution to a beneficiary are released initially without waiting any time.
+ */
 contract TokenVesting is Ownable, VestingWallet {
     address private _timelock;
 
@@ -104,7 +114,7 @@ contract TokenVesting is Ownable, VestingWallet {
     function claim() public override onlyBeneficiaryOrOwner {
         uint256 amount = claimable(msg.sender);
         claimedOf[msg.sender] += amount;
-        SafeERC20.safeTransfer(IERC20(token), msg.sender, amount);
+        SafeERC20.safeTransfer(token, msg.sender, amount);
         emit TokensClaimed(msg.sender, amount);
     }
 

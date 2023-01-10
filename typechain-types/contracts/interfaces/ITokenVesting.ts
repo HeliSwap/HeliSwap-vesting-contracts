@@ -13,11 +13,7 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -25,44 +21,28 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../common";
+} from "../../common";
 
-export interface VestingWalletInterface extends utils.Interface {
+export interface ITokenVestingInterface extends utils.Interface {
   functions: {
     "addTokens(address,uint256)": FunctionFragment;
     "claim()": FunctionFragment;
-    "claimable(address)": FunctionFragment;
-    "cliff()": FunctionFragment;
-    "duration()": FunctionFragment;
     "failSafe()": FunctionFragment;
-    "freeTokensPercentage()": FunctionFragment;
-    "isBeneficiary(address)": FunctionFragment;
-    "released(address)": FunctionFragment;
     "scheduledTokens(address)": FunctionFragment;
-    "start()": FunctionFragment;
     "timelock()": FunctionFragment;
     "token()": FunctionFragment;
     "updateDuration(uint64)": FunctionFragment;
-    "vestedAmount(address,uint64)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "addTokens"
       | "claim"
-      | "claimable"
-      | "cliff"
-      | "duration"
       | "failSafe"
-      | "freeTokensPercentage"
-      | "isBeneficiary"
-      | "released"
       | "scheduledTokens"
-      | "start"
       | "timelock"
       | "token"
       | "updateDuration"
-      | "vestedAmount"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -70,96 +50,41 @@ export interface VestingWalletInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "claim", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "claimable",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(functionFragment: "cliff", values?: undefined): string;
-  encodeFunctionData(functionFragment: "duration", values?: undefined): string;
   encodeFunctionData(functionFragment: "failSafe", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "freeTokensPercentage",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isBeneficiary",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "released",
-    values: [PromiseOrValue<string>]
-  ): string;
   encodeFunctionData(
     functionFragment: "scheduledTokens",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "start", values?: undefined): string;
   encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updateDuration",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "vestedAmount",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
-  ): string;
 
   decodeFunctionResult(functionFragment: "addTokens", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "cliff", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "duration", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "failSafe", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "freeTokensPercentage",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isBeneficiary",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "released", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "scheduledTokens",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "start", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "timelock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateDuration",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "vestedAmount",
-    data: BytesLike
-  ): Result;
 
-  events: {
-    "TokensClaimed(address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "TokensClaimed"): EventFragment;
+  events: {};
 }
 
-export interface TokensClaimedEventObject {
-  beneficiary: string;
-  amount: BigNumber;
-}
-export type TokensClaimedEvent = TypedEvent<
-  [string, BigNumber],
-  TokensClaimedEventObject
->;
-
-export type TokensClaimedEventFilter = TypedEventFilter<TokensClaimedEvent>;
-
-export interface VestingWallet extends BaseContract {
+export interface ITokenVesting extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: VestingWalletInterface;
+  interface: ITokenVestingInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -191,37 +116,14 @@ export interface VestingWallet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    claimable(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    cliff(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    duration(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     failSafe(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    freeTokensPercentage(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    isBeneficiary(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    released(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     scheduledTokens(
       beneficiary: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    start(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     timelock(overrides?: CallOverrides): Promise<[string]>;
 
@@ -231,12 +133,6 @@ export interface VestingWallet extends BaseContract {
       duration: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    vestedAmount(
-      beneficiary: PromiseOrValue<string>,
-      timestamp: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
   };
 
   addTokens(
@@ -249,37 +145,14 @@ export interface VestingWallet extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  claimable(
-    beneficiary: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  cliff(overrides?: CallOverrides): Promise<BigNumber>;
-
-  duration(overrides?: CallOverrides): Promise<BigNumber>;
-
   failSafe(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  freeTokensPercentage(overrides?: CallOverrides): Promise<BigNumber>;
-
-  isBeneficiary(
-    user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  released(
-    beneficiary: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   scheduledTokens(
     beneficiary: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  start(overrides?: CallOverrides): Promise<BigNumber>;
 
   timelock(overrides?: CallOverrides): Promise<string>;
 
@@ -290,12 +163,6 @@ export interface VestingWallet extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  vestedAmount(
-    beneficiary: PromiseOrValue<string>,
-    timestamp: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   callStatic: {
     addTokens(
       beneficiary: PromiseOrValue<string>,
@@ -305,35 +172,12 @@ export interface VestingWallet extends BaseContract {
 
     claim(overrides?: CallOverrides): Promise<void>;
 
-    claimable(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    cliff(overrides?: CallOverrides): Promise<BigNumber>;
-
-    duration(overrides?: CallOverrides): Promise<BigNumber>;
-
     failSafe(overrides?: CallOverrides): Promise<void>;
-
-    freeTokensPercentage(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isBeneficiary(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    released(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     scheduledTokens(
       beneficiary: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    start(overrides?: CallOverrides): Promise<BigNumber>;
 
     timelock(overrides?: CallOverrides): Promise<string>;
 
@@ -343,24 +187,9 @@ export interface VestingWallet extends BaseContract {
       duration: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    vestedAmount(
-      beneficiary: PromiseOrValue<string>,
-      timestamp: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
-  filters: {
-    "TokensClaimed(address,uint256)"(
-      beneficiary?: PromiseOrValue<string> | null,
-      amount?: null
-    ): TokensClaimedEventFilter;
-    TokensClaimed(
-      beneficiary?: PromiseOrValue<string> | null,
-      amount?: null
-    ): TokensClaimedEventFilter;
-  };
+  filters: {};
 
   estimateGas: {
     addTokens(
@@ -373,37 +202,14 @@ export interface VestingWallet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    claimable(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    cliff(overrides?: CallOverrides): Promise<BigNumber>;
-
-    duration(overrides?: CallOverrides): Promise<BigNumber>;
-
     failSafe(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    freeTokensPercentage(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isBeneficiary(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    released(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     scheduledTokens(
       beneficiary: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    start(overrides?: CallOverrides): Promise<BigNumber>;
 
     timelock(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -412,12 +218,6 @@ export interface VestingWallet extends BaseContract {
     updateDuration(
       duration: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    vestedAmount(
-      beneficiary: PromiseOrValue<string>,
-      timestamp: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -432,39 +232,14 @@ export interface VestingWallet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    claimable(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    cliff(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    duration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     failSafe(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    freeTokensPercentage(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isBeneficiary(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    released(
-      beneficiary: PromiseOrValue<string>,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     scheduledTokens(
       beneficiary: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    start(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     timelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -473,12 +248,6 @@ export interface VestingWallet extends BaseContract {
     updateDuration(
       duration: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    vestedAmount(
-      beneficiary: PromiseOrValue<string>,
-      timestamp: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }
