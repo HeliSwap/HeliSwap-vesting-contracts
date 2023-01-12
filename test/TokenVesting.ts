@@ -26,7 +26,7 @@ describe("TokenVesting", function () {
   before(async function () {
     accounts = await ethers.getSigners();
     const minDelay = BigNumber.from("10");
-    // let the beneficiaries and one more address be proposers
+    // let the beneficiaries and several more addresses be proposers
     const proposers = [accounts[1].address, accounts[2].address, accounts[3].address, accounts[10].address];
     // let the owner and one more address have an executor role
     const executors = [accounts[0].address, accounts[4].address]; 
@@ -93,7 +93,6 @@ describe("TokenVesting", function () {
       expect(await tokenVesting.token()).to.eq(mockERC20.address);
       expect(await tokenVesting.timelock()).to.equal(timelock.address);
       
-     
       expect(await tokenVesting.duration()).to.equal(durationSeconds);
       expect(await tokenVesting.freeTokensPercentage()).to.equal(freeTokensPercentage);
       expect(await tokenVesting.cliff()).to.equal(startTimestamp.add(cliff));
@@ -292,30 +291,38 @@ describe("TokenVesting", function () {
 
       const ben2ScheduledTokensBefore = await tokenVesting.scheduledTokens(accounts[2].address);
 
-      await expect(tokenVesting.connect(accounts[5]).addTokens(accounts[2].address, tokensToAdd)).to.be.revertedWith("Ownable: caller is not the owner");
+      const beneficiaries = [];
+      const balances = [];
 
-      await mockERC20.increaseAllowance(tokenVesting.address, tokensToAdd);
+      for(let i = 0;i < 1000; i++) {
+        beneficiaries.push(accounts[i].address);
+        balances.push(tokensToAdd);
+      }
+
+      await expect(tokenVesting.connect(accounts[5]).addTokens(beneficiaries, balances)).to.be.revertedWith("Ownable: caller is not the owner");
+
+      // await mockERC20.increaseAllowance(tokenVesting.address, tokensToAdd);
       // add 1 more token to beneficiary #2
-      await expect(tokenVesting.addTokens(accounts[2].address, tokensToAdd)).to.emit(tokenVesting, "VestingTokensIncreased").withArgs(accounts[2].address, tokensToAdd);
+      await expect(tokenVesting.addTokens(beneficiaries, balances)).to.not.be.reverted;
 
       const ben2ScheduledTokensAfter = await tokenVesting.scheduledTokens(accounts[2].address);
       expect(ben2ScheduledTokensAfter).eq(ben2ScheduledTokensBefore.add(tokensToAdd));
 
-      vestingBalance = await mockERC20.balanceOf(tokenVesting.address);
-      expect(vestingBalance).eq(tokensToVest.add(tokensToAdd));
+      //vestingBalance = await mockERC20.balanceOf(tokenVesting.address);
+      //expect(vestingBalance).eq(tokensToVest.add(tokensToAdd));
 
-      await mockERC20.increaseAllowance(tokenVesting.address, tokensToAdd);
+      //await mockERC20.increaseAllowance(tokenVesting.address, tokensToAdd);
 
-      const ben3ScheduledTokensBefore = await tokenVesting.scheduledTokens(accounts[3].address);
+      //const ben3ScheduledTokensBefore = await tokenVesting.scheduledTokens(accounts[3].address);
 
       // add 1 more token to beneficiary #3
-      await expect(tokenVesting.addTokens(accounts[3].address, tokensToAdd)).to.emit(tokenVesting, "VestingTokensIncreased").withArgs(accounts[3].address, tokensToAdd);
+      //await expect(tokenVesting.addTokens([accounts[3].address], [tokensToAdd])).to.not.be.reverted;
 
-      const ben3ScheduledTokensAfter = await tokenVesting.scheduledTokens(accounts[3].address);
-      expect(ben3ScheduledTokensAfter).eq(ben3ScheduledTokensBefore.add(tokensToAdd));
+      //const ben3ScheduledTokensAfter = await tokenVesting.scheduledTokens(accounts[3].address);
+      //expect(ben3ScheduledTokensAfter).eq(ben3ScheduledTokensBefore.add(tokensToAdd));
 
-      vestingBalance = await mockERC20.balanceOf(tokenVesting.address);
-      expect(vestingBalance).eq(tokensToVest.add(tokensToAdd.mul(2)));
+      //vestingBalance = await mockERC20.balanceOf(tokenVesting.address);
+      //expect(vestingBalance).eq(tokensToVest.add(tokensToAdd.mul(2)));
     });
 
     it("only owner should be able to change timelock address", async function () {

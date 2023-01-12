@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       timeout: 1800000,
       accounts: {
-        count: 100,
+        count: 1000,
       }
     },
   },

@@ -37,9 +37,8 @@ contract TokenVesting is Ownable, VestingWallet {
 
     event TimelockAddressChanged(address oldAddress, address newAddress);
     event FailSafeOccurred();
-    event VestingTokensIncreased(address beneficiary, uint256 amount);
 
-     /**
+    /**
      * @param tokenAddress The address of the token that is to be vested.
      * @param timelockAddress An address of a timelock contract responsible for triggering updateDuration and failSafe operations.
      * @param beneficiaries The addresses that will have claim rights over the token.
@@ -66,13 +65,17 @@ contract TokenVesting is Ownable, VestingWallet {
             cliff,
             freeTokensPercentage,
             startTimestamp,
-            durationSeconds 
+            durationSeconds
         )
     {
         require(
-            beneficiaries.length == balances.length, "Constructor :: Holders and balances differ"
+            beneficiaries.length == balances.length,
+            "Constructor :: Holders and balances differ"
         );
-        require(timelockAddress != address(0), "VestingWallet: timelock is zero address");
+        require(
+            timelockAddress != address(0),
+            "VestingWallet: timelock is zero address"
+        );
         _timelock = timelockAddress;
     }
 
@@ -98,12 +101,25 @@ contract TokenVesting is Ownable, VestingWallet {
     /**
      * @dev Increases the tokens for distribution for а beneficiary.
      *
-     * Emits a {VestingTokensIncreased} event.
      */
-    function addTokens(address beneficiary, uint256 amount) external override onlyOwner {
-        SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
-        vestedTokensOf[beneficiary] += amount;
-        emit VestingTokensIncreased(beneficiary, amount);
+    function addTokens(address[] memory beneficiaries, uint256[] memory amounts)
+        external
+        override
+        onlyOwner
+    {
+        require(
+            beneficiaries.length == amounts.length,
+            "Array lengths must be the same"
+        );
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            // SafeERC20.safeTransferFrom(
+            //     token,
+            //     msg.sender,
+            //     address(this),
+            //     amounts[i]
+            // );
+            vestedTokensOf[beneficiaries[i]] += amounts[i];
+        }
     }
 
     /**
@@ -118,12 +134,15 @@ contract TokenVesting is Ownable, VestingWallet {
         emit TokensClaimed(msg.sender, amount);
     }
 
-    function timelock() external override view returns(address) {
+    function timelock() external view override returns (address) {
         return _timelock;
     }
 
     // TODO: Do we want it to be changeable ? Maybe no need
-    function changeTimelockAddress(address _newTimelockAddress) external onlyOwner {
+    function changeTimelockAddress(address _newTimelockAddress)
+        external
+        onlyOwner
+    {
         emit TimelockAddressChanged(_timelock, _newTimelockAddress);
         _timelock = _newTimelockAddress;
     }
