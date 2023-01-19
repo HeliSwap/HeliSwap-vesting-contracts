@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.12.2",
+    "hardhat-gas-reporter": "^1.0.9"
+  },
+  "dependencies": {
+    "@hashgraph/hedera-local": "^2.2.1",
+    "@openzeppelin/contracts": "^4.8.1",
+    "solidity-coverage": "^0.8.2"
+  },
+  "scripts": {
+    "deployMockERC20": "npx hardhat deployMockERC20 --network testnet",
+    "deployTimelock": "npx hardhat deployTimelock --network testnet",
+    "deployTokenVesting": "npx hardhat deployTokenVesting --network testnet",
+    "addBeneficiaries": "npx hardhat addBeneficiaries --network testnet"
+  }
+}
