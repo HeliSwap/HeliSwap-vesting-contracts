@@ -10,6 +10,8 @@ interface ITokenVesting {
     function addTokens(address[] memory beneficiaries, uint256[] memory amounts) external;
     function failSafe() external;
     function updateDuration(uint64 duration) external;
+    function changeTokenAddress(address _newTokenAddress) external;
+    function changeTimelockAddress(address _newTimelockAddress) external;
 
     event TokensClaimed(address indexed beneficiary, uint256 amount);
     event TimelockAddressChanged(address newAddress);

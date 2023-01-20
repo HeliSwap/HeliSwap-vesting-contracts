@@ -45,51 +45,51 @@ contract TokenVesting is Ownable, ITokenVesting {
     }
 
     /**
-     * @param tokenAddress The address of the token that is to be vested.
-     * @param timelockAddress An address of a timelock contract responsible for triggering updateDuration and failSafe operations.
+     * @param _tokenAddress The address of the token that is to be vested.
+     * @param _timelockAddress An address of a timelock contract responsible for triggering operations that require a delay.
      * @param beneficiaries The addresses that will have claim rights over the token.
-     * @param balances The balances of each address respectively that is scheduled to be vested.
-     * @param startTimestamp Start timestamp of the linear distribution.
-     * @param durationSeconds Duration of the linear distribution.
+     * @param balances The balances of each beneficiary respectively.
+     * @param _startTimestamp Start timestamp of the linear distribution.
+     * @param _durationSeconds Duration of the linear distribution.
      * @param _cliff Timestamp after which a beneficiary can actually claim any unlocked tokens.
      * @param _freeTokensPercentage Percentage (an integer from 1 to 100) of the total scheduled tokens for each beneficiary that are unlocked initially without waiting any time.
      */
     constructor(
-        address tokenAddress,
-        address timelockAddress,
+        address _tokenAddress,
+        address _timelockAddress,
         address[] memory beneficiaries,
         uint256[] memory balances,
         uint256 _cliff,
         uint256 _freeTokensPercentage,
-        uint64 startTimestamp,
-        uint64 durationSeconds
+        uint64 _startTimestamp,
+        uint64 _durationSeconds
     ) {
         require(
             beneficiaries.length == balances.length,
             "Constructor :: Holders and balances differ"
         );
-        if (timelockAddress == address(0)) {
+        if (_timelockAddress == address(0)) {
             revert Errors.TokenVesting__TimelockAddressIsZero();
         }
 
-        if (tokenAddress == address(0)) {
+        if (_tokenAddress == address(0)) {
             revert Errors.TokenVesting__TokenAddressIsZero();
         }
 
-        token = IERC20(tokenAddress);
+        token = IERC20(_tokenAddress);
 
-        optimisticAssociation(tokenAddress);
+        optimisticAssociation(_tokenAddress);
 
         for (uint256 i = 0; i < beneficiaries.length; i++) {
             vestedTokensOf[beneficiaries[i]] = balances[i];
         }
 
-        start = startTimestamp;
-        duration = durationSeconds;
+        start = _startTimestamp;
+        duration = _durationSeconds;
         cliff = start + _cliff;
         freeTokensPercentage = _freeTokensPercentage;
 
-        timelock = timelockAddress;
+        timelock = _timelockAddress;
     }
 
     /**
@@ -103,7 +103,7 @@ contract TokenVesting is Ownable, ITokenVesting {
     }
 
     /**
-     * @dev Stops the distribution of the tokens in case something is wrong with the contract and transfers all left tokens back to the owner.
+     * @dev Stops the distribution of the tokens in case something is wrong with the contract/or some unpredictable event and transfers all left tokens back to the owner.
      * @dev Only triggerable by the timelock.
      *
      * Emits a {FailSafeOccurred} event.
@@ -115,7 +115,7 @@ contract TokenVesting is Ownable, ITokenVesting {
 
     /**
      * @dev Increases the tokens for distribution for the provided beneficiaries.
-     *
+     * @dev The contract needs to have the total sum of the amounts as allowance.
      */
     function addTokens(address[] memory beneficiaries, uint256[] memory amounts)
         public
@@ -139,13 +139,12 @@ contract TokenVesting is Ownable, ITokenVesting {
     }
 
     /**
-     * @dev Virtual implementation of the vesting formula. This returns the amount vested, as a function of time, for
+     * @dev Implementation of the vesting formula. This returns the amount vested, as a function of time, for
      * an asset given its total historical allocation.
      */
     function _vestingSchedule(uint256 totalAllocation, uint64 timestamp)
         internal
         view
-        virtual
         returns (uint256)
     {
         if (timestamp < cliff) {
@@ -165,7 +164,6 @@ contract TokenVesting is Ownable, ITokenVesting {
     function vestedAmount(address beneficiary, uint64 timestamp)
         public
         view
-        virtual
         returns (uint256)
     {
         uint256 initialUnlock = (vestedTokensOf[beneficiary] *
@@ -216,9 +214,9 @@ contract TokenVesting is Ownable, ITokenVesting {
 
     /**
      * @dev Change the address of the vesting token.
+     * Note: No need to check whether the parameter _newTokenAddress is 0x because the TimeLock does not allow 0-byte input anyway.
      *
      * Emits a {TokenAddressChanged} event.
-     * Note: No need to check whether the passed _newTokenAddress is 0x because the TimeLock handles it.
      */
     function changeTokenAddress(address _newTokenAddress)
         external
@@ -228,17 +226,17 @@ contract TokenVesting is Ownable, ITokenVesting {
         emit TokenAddressChanged(_newTokenAddress);
     }
 
-    function optimisticAssociation(address token) private {
+    function optimisticAssociation(address _token) private {
         (bool success, bytes memory result) = address(0x167).call(
             abi.encodeWithSignature(
                 "associateToken(address,address)",
                 address(this),
-                token
+                _token
             )
         );
         require(success, "HTS Precompile: CALL_EXCEPTION");
         int32 responseCode = abi.decode(result, (int32));
-        
+
         //Success = 22; Non-HTS token (erc20) = 167
         require(
             responseCode == 22 || responseCode == 167,
