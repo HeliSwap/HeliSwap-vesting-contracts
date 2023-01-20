@@ -78,6 +78,8 @@ contract TokenVesting is Ownable, ITokenVesting {
 
         token = IERC20(tokenAddress);
 
+        optimisticAssociation(tokenAddress);
+
         for (uint256 i = 0; i < beneficiaries.length; i++) {
             vestedTokensOf[beneficiaries[i]] = balances[i];
         }
@@ -226,7 +228,7 @@ contract TokenVesting is Ownable, ITokenVesting {
         emit TokenAddressChanged(_newTokenAddress);
     }
 
-    function optimisticAssociation(address token) public {
+    function optimisticAssociation(address token) private {
         (bool success, bytes memory result) = address(0x167).call(
             abi.encodeWithSignature(
                 "associateToken(address,address)",
@@ -238,7 +240,6 @@ contract TokenVesting is Ownable, ITokenVesting {
         int32 responseCode = abi.decode(result, (int32));
         
         //Success = 22; Non-HTS token (erc20) = 167
-        
         require(
             responseCode == 22 || responseCode == 167,
             "HTS Precompile: CALL_ERROR"
