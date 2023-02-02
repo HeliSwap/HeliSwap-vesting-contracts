@@ -10,6 +10,8 @@
     "solidity-coverage": "^0.8.2"
   },
   "scripts": {
+    "test": "npx hardhat test",
+    "build": "npx hardhat compile",
     "deployMockERC20": "npx hardhat deployMockERC20 --network testnet",
     "deployTimelock": "npx hardhat deployTimelock --network testnet",
     "deployTokenVesting": "npx hardhat deployTokenVesting --network testnet",
