@@ -17,6 +17,8 @@ interface IClaimDrop {
 
     event Divest(uint256 amount);
 
+    event FailSafeOccurred(uint256 safeAmount);
+
     function start() external view returns (uint256);
 
     function end() external view returns (uint256);
@@ -29,13 +31,13 @@ interface IClaimDrop {
 
     function token() external view returns (IERC20);
 
-    function timelock() external view returns (address);
-
     function totalAllocated() external view returns (uint256);
 
     function extraTokensOf(address beneficiary) external view returns (uint256);
 
     function claimedOf(address) external view returns (uint256);
+
+    function extraClaimedOf(address) external view returns (uint256);
 
     function vestedTokensOf(address) external view returns (uint256);
 
@@ -50,14 +52,18 @@ interface IClaimDrop {
         uint256 claimExtraDuration
     ) external;
 
-    function updateDuration(uint256 vestingDuration) external;
+    function updateDuration() external;
 
     function claim() external;
 
     function claimable(address beneficiary)
         external
         view
-        returns (uint256 availableToClaim, uint256 availableVested);
+        returns (
+            uint256 availableExtra,
+            uint256 availableVested,
+            uint256 tokensNotVested
+        );
 
     function totalAllocatedOf(address beneficiary)
         external
@@ -65,4 +71,6 @@ interface IClaimDrop {
         returns (uint256);
 
     function divest() external;
+
+    function failSafe() external;
 }

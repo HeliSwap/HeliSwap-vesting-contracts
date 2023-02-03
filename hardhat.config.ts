@@ -1,88 +1,204 @@
-import "@nomicfoundation/hardhat-toolbox";
-import "hardhat-gas-reporter";
-import "solidity-coverage";
-import { task } from "hardhat/config";
-
 import * as dotenv from "dotenv";
+
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
+import "@typechain/hardhat";
+import "hardhat-gas-reporter";
+import "hardhat-tracer";
+import "solidity-coverage";
+import "hardhat-contract-sizer";
+import chalk from "chalk";
+import { ethers } from "ethers";
+
 dotenv.config();
 
-task("deployMockERC20", "Deploys an ERC20 Mock Contract").setAction(
-  async () => {
-    const factoryDeployment = require("./scripts/00-deploy-mockerc20");
-    await factoryDeployment();
-  }
-);
+const mainnetAccounts: any = [];
+const goerliAccounts: any = [];
+const accounts = [
+  {
+    privateKey:
+      "0xe80902f1423234ab6de5232a497a2dad6825185949438bdf02ef36cd3f38d62c",
+    balance: "111371231719819352917048000",
 
-task("deployTimelock", "Deploys an ERC20 Mock Contract").setAction(async () => {
-  const deployTimelock = require("./scripts/01-deploy-timelock");
-  await deployTimelock();
-});
+  },
+  {
+    privateKey:
+      "0x8dc23d20e4cc1c1bce80b3610d2b9c3d2dcc917fe838d6161c7b7107ea8049d2",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xf467b3f495971ec1804cd753984e2ab03affc8574c35bd302d611f93420c1861",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0x195c2fce7255bddbea14def3ca04fd5bf2b53e749cd2d4ac33a85d6872e798f6",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xa9039111697f2c0c51d0c2f35cb1fc1fa9f0456e1a0b58c297d4940eda35b135",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xd32ba1893d2c189fb6ce63ef03c63e2aa7cf2893c60c39851d2c576fd7bb8b65",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xf9def8e25a2538e0a090bce36e9cd7815d04347171383f9dcb6362078c4437df",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xe57de1dc1573318d0a7e81367138c09b04a6a6bc6f46858c3a09d1f7a25ee72d",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0x81274be2a9a23d2bcb6786b786917b3641d8dff69b541a7f1d20151a145a4114",
+    balance: "111371231719819352917048000",
+  },
+  {
+    privateKey:
+      "0xf1ddce51d38205805c1574e46dc3982c5cdad8e78641200280be1df7487bdbac",
+    balance: "111371231719819352917048000",
+  },
+];
+// this will be used for load tests
+// for (let index = 0; index < 10; index++) {
+//   accounts.push({
+//     privateKey: ethers.Wallet.createRandom().privateKey,
+//     balance: "371231719819352917048725983856890896639803364957755791114240",
+//   });
+// }
 
-task("deployTokenVesting", "Deploys an ERC20 Mock Contract").setAction(
-  async () => {
-    const deployTokenVesting = require("./scripts/02-deploy-token-vesting");
-    await deployTokenVesting();
-  }
-);
-
-task("addBeneficiaries", "Deploys an ERC20 Mock Contract").setAction(
-  async () => {
-    const addBeneficiaries = require("./scripts/03-call-add-tokens");
-    await addBeneficiaries();
-  }
-);
-
-module.exports = {
+const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.17',
+    version: "0.8.17",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 9999,
+        runs: 200,
+      },
+      // required for smocks plugin
+      outputSelection: {
+        "*": {
+          "*": ["storageLayout"],
+        },
       },
     },
   },
-  hedera: {
-    gasLimit: 15_000_000,
-    networks: {
-      localHederaNetwork: {
-        consensusNodes: [
-          {
-            url: "127.0.0.1:50211",
-            nodeId: "0.0.3",
-          },
-        ],
-        mirrorNodeUrl: "http://127.0.0.1:5551",
-        chainId: 0,
-        accounts: [
-          {
-            account: "0.0.1001",
-            privateKey:
-              "0x7f109a9e3b0d8ecfba9cc23a3614433ce0fa7ddcc80f2a8f10b222179a5a80d6",
-          },
-          {
-            account: "0.0.1002",
-            privateKey:
-              "0x6ec1f2e7d126a74a1d2ff9e1c5d90b92378c725e506651ff8bb8616a5c724628",
-          },
-          {
-            account: "0.0.1003",
-            privateKey:
-              "0xb4d7f7e82f61d81c95985771b8abf518f9328d019c36849d4214b5f995d13814",
-          },
-          {
-            account: "0.0.1004",
-            privateKey:
-              "0x941536648ac10d5734973e94df413c17809d6cc5e24cd11e947e685acfbd12ae",
-          },
-          {
-            account: "0.0.1005",
-            privateKey:
-              "0x5829cf333ef66b6bdd34950f096cb24e06ef041c5f63e577b4f3362309125863",
-          },
-        ],
-      },
+  paths: {
+    sources: "./contracts",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
+  networks: {
+    localhost: {
+      url: "http://localhost:8545",
     },
-    defaultNetwork: "localHederaNetwork",
+    hardhat: {
+      allowUnlimitedContractSize: true,
+      forking: {
+        url: "" + process.env.MAINNET_KEY,
+        blockNumber: 15680777,
+      },
+      // mining: {
+      //   auto: false,
+      //   interval: 13000,
+      // },
+      accounts,
+    },
+    goerli: {
+      url: "" + process.env.TESTNET_KEY,
+      accounts: goerliAccounts,
+    },
+    mainnet: {
+      url: "" + process.env.MAINNET_KEY,
+      accounts: mainnetAccounts,
+    },
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS === "true",
+    currency: "USD",
+  },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: "",
   },
 };
+
+/**
+ * At the end of testing, this will print out cumulative running times per test suite ("describe").
+ */
+if (process.env.REPORT_MOCHA_TIME === "true") {
+  config.mocha = {
+    rootHooks: {
+      beforeEach: function (done) {
+        const _this: any = this;
+        if (!_this.currentTest.parent.timerStart) {
+          _this.currentTest.parent.timerIndex = 0;
+          _this.currentTest.parent.timerStart = Date.now();
+        }
+        done();
+      },
+      afterEach: function (done) {
+        const _this: any = this;
+        if (
+          _this.currentTest.parent.timerStart &&
+          ++_this.currentTest.parent.timerIndex ===
+          _this.currentTest.parent.tests.length
+        ) {
+          _this.currentTest.parent.timerDuration =
+            Date.now() - _this.currentTest.parent.timerStart;
+          // console.log(`Suite "${_this.currentTest.parent.fullTitle()}" Elapsed: ${_this.currentTest.parent.timerDuration}ms`);
+        }
+        done();
+      },
+      afterAll: function (done) {
+        const _this: any = this;
+        const results: Array<any> = [];
+        function walk_suites (suite: any) {
+          if (suite.suites.length == 0) {
+            if (suite.timerDuration !== undefined) {
+              results.push({
+                title: suite.fullTitle(),
+                time: suite.timerDuration,
+              });
+            }
+          } else {
+            for (const x of suite.suites) {
+              walk_suites(x);
+            }
+          }
+        }
+
+        walk_suites(_this.test.parent);
+        console.log(
+          "Suite cumulative times from beforeEach to afterEach (excludes before and after):"
+        );
+        const averageTime: number =
+          results.reduce((p, c) => p + c.time, 0) / results.length;
+        let labelTime: String;
+        for (const result of results) {
+          if (result.time > averageTime) {
+            labelTime = chalk.red(`${result.time}ms`);
+          } else {
+            labelTime = `${result.time}ms`;
+          }
+          console.log(`${result.title} ${labelTime}`);
+        }
+
+        done();
+      },
+    },
+  };
+}
+
+export default config;
+
