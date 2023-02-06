@@ -114,6 +114,8 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
         emit VestingStarted(start, end, cliffEnd, claimExtraDuration);
     }
 
+    /// @notice In case one decides to distribute exta tokens among the users. They will be distributed based on the
+    /// @notice initail allocation of each user
     function fund(uint256 amount) external override nonReentrant {
         TransferHelper.safeTransferFrom(
             address(token),

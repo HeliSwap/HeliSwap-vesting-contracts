@@ -78,6 +78,15 @@ describe("ClaimDrop", function () {
     )).deployed();
   });
 
+  it("Should revert in case of invalid vesting percentage", async function () {
+    const ClaimDropFactory = await ethers.getContractFactory("ClaimDrop");
+    await expect(ClaimDropFactory.deploy(
+      mockERC20.address,
+      ethers.utils.parseEther("2"),
+      60 * 60 * 24 // 1 day
+    )).to.be.revertedWith("ClaimDrop__PercentageOutOfRange");
+  });
+
   it("Should add beneficiaries", async function () {
     await mockERC20.approve(claimDrop.address, ethers.utils.parseEther("2"));
     await claimDrop.addBeneficiaries([signers[1].address, signers[2].address], [
