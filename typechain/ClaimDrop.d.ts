@@ -29,9 +29,11 @@ interface ClaimDropInterface extends ethers.utils.Interface {
     "cliffEnd()": FunctionFragment;
     "divest()": FunctionFragment;
     "end()": FunctionFragment;
-    "extraClaimedOf(address)": FunctionFragment;
     "extraTokensOf(address)": FunctionFragment;
+    "failMode()": FunctionFragment;
     "failSafe()": FunctionFragment;
+    "fund(uint256)": FunctionFragment;
+    "index()": FunctionFragment;
     "lockTime()": FunctionFragment;
     "locks(bytes4)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -63,14 +65,13 @@ interface ClaimDropInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "divest", values?: undefined): string;
   encodeFunctionData(functionFragment: "end", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "extraClaimedOf",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "extraTokensOf",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "failMode", values?: undefined): string;
   encodeFunctionData(functionFragment: "failSafe", values?: undefined): string;
+  encodeFunctionData(functionFragment: "fund", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "index", values?: undefined): string;
   encodeFunctionData(functionFragment: "lockTime", values?: undefined): string;
   encodeFunctionData(functionFragment: "locks", values: [BytesLike]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -128,14 +129,13 @@ interface ClaimDropInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "divest", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "end", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "extraClaimedOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "extraTokensOf",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "failMode", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "failSafe", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "fund", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "index", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lockTime", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locks", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -180,6 +180,7 @@ interface ClaimDropInterface extends ethers.utils.Interface {
     "Divest(uint256)": EventFragment;
     "DurationUpdated(uint256,uint256)": EventFragment;
     "FailSafeOccurred(uint256)": EventFragment;
+    "Funded(uint256,uint256,uint256)": EventFragment;
     "LockSheduled(bytes4,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "TokensClaimed(address,uint256)": EventFragment;
@@ -190,6 +191,7 @@ interface ClaimDropInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Divest"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DurationUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FailSafeOccurred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Funded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LockSheduled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokensClaimed"): EventFragment;
@@ -208,6 +210,14 @@ export type DurationUpdatedEvent = TypedEvent<
 
 export type FailSafeOccurredEvent = TypedEvent<
   [BigNumber] & { safeAmount: BigNumber }
+>;
+
+export type FundedEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber] & {
+    amount: BigNumber;
+    index: BigNumber;
+    totalAllocated: BigNumber;
+  }
 >;
 
 export type LockSheduledEvent = TypedEvent<
@@ -290,13 +300,7 @@ export class ClaimDrop extends BaseContract {
     claimable(
       beneficiary: string,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        availableToClaim: BigNumber;
-        availableVested: BigNumber;
-        availableExtra: BigNumber;
-      }
-    >;
+    ): Promise<[BigNumber] & { availableAllocated: BigNumber }>;
 
     claimedOf(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -308,19 +312,23 @@ export class ClaimDrop extends BaseContract {
 
     end(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    extraClaimedOf(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     extraTokensOf(
       beneficiary: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    failMode(overrides?: CallOverrides): Promise<[boolean]>;
+
     failSafe(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    fund(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    index(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     lockTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -388,16 +396,7 @@ export class ClaimDrop extends BaseContract {
 
   claimExtraTime(overrides?: CallOverrides): Promise<BigNumber>;
 
-  claimable(
-    beneficiary: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
-      availableToClaim: BigNumber;
-      availableVested: BigNumber;
-      availableExtra: BigNumber;
-    }
-  >;
+  claimable(beneficiary: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   claimedOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -409,16 +408,23 @@ export class ClaimDrop extends BaseContract {
 
   end(overrides?: CallOverrides): Promise<BigNumber>;
 
-  extraClaimedOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
   extraTokensOf(
     beneficiary: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  failMode(overrides?: CallOverrides): Promise<boolean>;
+
   failSafe(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  fund(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  index(overrides?: CallOverrides): Promise<BigNumber>;
 
   lockTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -484,13 +490,7 @@ export class ClaimDrop extends BaseContract {
     claimable(
       beneficiary: string,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        availableToClaim: BigNumber;
-        availableVested: BigNumber;
-        availableExtra: BigNumber;
-      }
-    >;
+    ): Promise<BigNumber>;
 
     claimedOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -500,14 +500,18 @@ export class ClaimDrop extends BaseContract {
 
     end(overrides?: CallOverrides): Promise<BigNumber>;
 
-    extraClaimedOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     extraTokensOf(
       beneficiary: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    failMode(overrides?: CallOverrides): Promise<boolean>;
+
     failSafe(overrides?: CallOverrides): Promise<void>;
+
+    fund(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    index(overrides?: CallOverrides): Promise<BigNumber>;
 
     lockTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -602,6 +606,24 @@ export class ClaimDrop extends BaseContract {
     FailSafeOccurred(
       safeAmount?: null
     ): TypedEventFilter<[BigNumber], { safeAmount: BigNumber }>;
+
+    "Funded(uint256,uint256,uint256)"(
+      amount?: null,
+      index?: null,
+      totalAllocated?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, BigNumber],
+      { amount: BigNumber; index: BigNumber; totalAllocated: BigNumber }
+    >;
+
+    Funded(
+      amount?: null,
+      index?: null,
+      totalAllocated?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, BigNumber],
+      { amount: BigNumber; index: BigNumber; totalAllocated: BigNumber }
+    >;
 
     "LockSheduled(bytes4,uint256)"(
       fn?: null,
@@ -710,16 +732,23 @@ export class ClaimDrop extends BaseContract {
 
     end(overrides?: CallOverrides): Promise<BigNumber>;
 
-    extraClaimedOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     extraTokensOf(
       beneficiary: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    failMode(overrides?: CallOverrides): Promise<BigNumber>;
+
     failSafe(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    fund(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    index(overrides?: CallOverrides): Promise<BigNumber>;
 
     lockTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -800,19 +829,23 @@ export class ClaimDrop extends BaseContract {
 
     end(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    extraClaimedOf(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     extraTokensOf(
       beneficiary: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    failMode(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     failSafe(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    fund(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    index(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lockTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

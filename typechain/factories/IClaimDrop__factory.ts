@@ -76,6 +76,31 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalAllocated",
+        type: "uint256",
+      },
+    ],
+    name: "Funded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "address",
         name: "claimer",
         type: "address",
@@ -171,17 +196,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "availableExtra",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "availableVested",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensNotVested",
+        name: "availableAllocated",
         type: "uint256",
       },
     ],
@@ -248,25 +263,6 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "extraClaimedOf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "beneficiary",
-        type: "address",
-      },
-    ],
     name: "extraTokensOf",
     outputs: [
       {
@@ -280,9 +276,48 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "failMode",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "failSafe",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "fund",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "index",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
