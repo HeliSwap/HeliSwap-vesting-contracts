@@ -9,6 +9,8 @@ import "hardhat-tracer";
 import "solidity-coverage";
 import "hardhat-contract-sizer";
 
+import * as config from "./config";
+
 // require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
 
 dotenv.config();
@@ -116,17 +118,7 @@ module.exports = {
     },
   },
   hedera: {
-    networks: {
-      mainnet: {
-        accounts: [
-          // @ts-ignore
-          {
-            account: '',
-            privateKey: '',
-          }
-        ]
-      }
-    },
+    networks: config.networks,
     gasLimit: 2_000_000,
   },
   gasReporter: {
