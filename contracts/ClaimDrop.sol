@@ -208,7 +208,7 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
 
         availableAllocated =
             (((tokensVested * timeRatio) / 1e18) + tokensNotVested) -
-            claimedOf[msg.sender];
+            claimedOf[beneficiary];
 
         // In the case of math inaccuracy in working with percentages, the last user could receive slighly less
         if (availableAllocated > token.balanceOf(address(this))) {
