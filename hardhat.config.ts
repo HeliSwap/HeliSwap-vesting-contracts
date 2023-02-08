@@ -34,6 +34,23 @@ task("addBeneficiaries", "Add Beneficiaries")
     await addBeneficiaries(tokenAddress, claimdrop);
   });
 
+task("startVesting", "Start Vesting")
+  .addParam("claimdrop", "Claimdrop contract")
+  .addParam("vestingDuration", "Vesting duration")
+  .addParam("cliffDuration", "Cliff duration")
+  .addParam("claimExtraDuration", "Claim extra duration")
+  .setAction(async (taskArgs) => {
+    const { claimdrop, vestingDuration, cliffDuration, claimExtraDuration } =
+      taskArgs;
+    const startVesting = require("./scripts/startVesting");
+    await startVesting(
+      claimdrop,
+      vestingDuration,
+      cliffDuration,
+      claimExtraDuration
+    );
+  });
+
 const accounts = [
   {
     privateKey:
