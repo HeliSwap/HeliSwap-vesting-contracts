@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",
-    "deploy": "npx hardhat deploy --network hedera --tokenAddress 0x0 --vestingPercentage 0 --lockTime 0",
+    "deploy": "npx hardhat deploy --token-address 0x000000000000000000000000000000000033dac0 --vesting-percentage 50 --lock-time 7200",
+    "addBeneficiaries": "npx hardhat addBeneficiaries --token-address 0x000000000000000000000000000000000033dac0 --claimdrop 0x000000000000000000000000000000000033f946",
     "coverage": "npx hardhat coverage",
     "build": "npx hardhat compile",
     "size": "npx hardhat size-contracts",
