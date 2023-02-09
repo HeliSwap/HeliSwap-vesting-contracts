@@ -11,18 +11,44 @@ import "hardhat-contract-sizer";
 
 import * as config from "./config";
 
-// require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
+require("@hashgraph/hardhat-hethers"); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
 
 dotenv.config();
 
-task('deploy', 'Deploy a ClaimDrop')
-  .addParam('tokenAddress', 'Heli token address')
-  .addParam('vestingPercentage', 'Percentage that is not vested, but free')
-  .addParam('lockTime', 'Timelock')
-  .setAction(async taskArgs => {
+task("deploy", "Deploy a ClaimDrop")
+  .addParam("tokenAddress", "Heli token address")
+  .addParam("vestingPercentage", "Percentage that is not vested, but free")
+  .addParam("lockTime", "Timelock")
+  .setAction(async (taskArgs) => {
     const { tokenAddress, vestingPercentage, lockTime } = taskArgs;
-    const deploy = require('./scripts/deploy');
+    const deploy = require("./scripts/deploy");
     await deploy(tokenAddress, vestingPercentage, lockTime);
+  });
+
+task("addBeneficiaries", "Add Beneficiaries")
+  .addParam("tokenAddress", "Heli token address")
+  .addParam("claimdrop", "Claimdrop contract")
+  .setAction(async (taskArgs) => {
+    const { tokenAddress, claimdrop } = taskArgs;
+    const addBeneficiaries = require("./scripts/addBeneficiaries");
+    await addBeneficiaries(tokenAddress, claimdrop);
+  });
+
+task("startVesting", "Start Vesting")
+  .addParam("claimdrop", "Claimdrop contract")
+  .addParam("vestingDuration", "Vesting duration")
+  .addParam("cliffDuration", "Cliff duration")
+  .addParam("claimExtraDuration", "Claim extra duration")
+  .setAction(async (taskArgs) => {
+    const { claimdrop, vestingDuration, cliffDuration, claimExtraDuration } =
+      taskArgs;
+    const startVesting = require("./scripts/startVesting");
+    await startVesting(
+      claimdrop,
+      vestingDuration,
+      cliffDuration,
+      claimExtraDuration
+    );
   });
 
 const accounts = [
@@ -30,7 +56,6 @@ const accounts = [
     privateKey:
       "0xe80902f1423234ab6de5232a497a2dad6825185949438bdf02ef36cd3f38d62c",
     balance: "111371231719819352917048000",
-
   },
   {
     privateKey:
@@ -131,5 +156,3 @@ module.exports = {
     apiKey: "",
   },
 };
-
-
