@@ -160,16 +160,15 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
     /// @dev Claiming is based on a linear vesting, so a user can not claim all his available
     /// @dev balance at once at the beginning. In the case there is a notVestedPercentage configured,
     /// @dev a part of the initially allocated tokens will unlocked immediately
-    function claim() external override onlyBeneficiary nonReentrant {
+    function claim() external override onlyBeneficiary {
         uint256 availableToClaim = claimable(msg.sender);
+        claimedOf[msg.sender] += availableToClaim;
 
         TransferHelper.safeTransfer(
             address(token),
             msg.sender,
             availableToClaim
         );
-
-        claimedOf[msg.sender] += availableToClaim;
 
         emit TokensClaimed(msg.sender, availableToClaim);
     }
@@ -194,11 +193,9 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
             return (0);
         }
 
-        uint256 totalTokens = totalAllocatedOf(beneficiary);
-
         uint256 tokensNotVested = (vestedTokensOf[beneficiary] *
             tokensNotVestedPercentage) / 1e18;
-        uint256 tokensVested = totalTokens - tokensNotVested;
+        uint256 tokensVested = totalAllocatedOf(beneficiary) - tokensNotVested;
 
         uint256 timeRatio = ((block.timestamp - cliffEnd) * 1e18) /
             (end - cliffEnd);
@@ -224,8 +221,7 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
         override
         returns (uint256)
     {
-        uint256 totalTokens = totalAllocatedOf(beneficiary);
-        return (totalTokens - vestedTokensOf[beneficiary]);
+        return totalAllocatedOf(beneficiary) - vestedTokensOf[beneficiary];
     }
 
     /// @notice Returns the initial allocated tokens plus the ones that could be distributed afterwards
@@ -241,6 +237,7 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
     /// @notice Typically there is extra time(claimExtraTime) once vault vesting time expires. That is the time
     /// @notice left for the users to claim their tokens. Once expire, the owner, who initially fund the contract can withdraw
     /// @notice all outstanding LP tokens, as they are assumed as "locked" ones
+    /// @notice Once divest happens, the contract is not usable anymore
     function divest() external override onlyOwner {
         if (end + claimExtraTime > block.timestamp) {
             revert Errors.ClaimDrop__DivestForbidden();
