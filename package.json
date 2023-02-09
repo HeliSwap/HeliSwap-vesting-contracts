@@ -1,14 +1,60 @@
 {
+  "name": "vesting-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "npx hardhat test",
+    "clean": "npx hardhat clean",
+    "deploy": "npx hardhat deploy --token-address 0x000000000000000000000000000000000033dac0 --vesting-percentage 50 --lock-time 60",
+    "addBeneficiaries": "npx hardhat addBeneficiaries --token-address 0x000000000000000000000000000000000033dac0 --claimdrop 0x0000000000000000000000000000000000340838",
+    "startVesting": "npx hardhat startVesting --claimdrop 0x0000000000000000000000000000000000340838 --vesting-duration 7776000 --cliff-duration 100 --claim-extra-duration 604800",
+    "coverage": "npx hardhat coverage",
+    "build": "npx hardhat compile",
+    "size": "npx hardhat size-contracts",
+    "lint": "prettier --list-different 'contracts/**/*.sol'"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [],
+  "author": "LimeChain",
+  "license": "ISC",
+  "resolutions": {
+    "hardhat/**/@ethereumjs/tx": "3.5.0"
+  },
   "devDependencies": {
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
-    "hardhat": "^2.12.2",
-    "hardhat-gas-reporter": "^1.0.9"
+    "@defi-wonderland/smock": "2.1.0",
+    "@nomiclabs/hardhat-ethers": "2.0.6",
+    "@nomiclabs/hardhat-etherscan": "2.1.8",
+    "@nomiclabs/hardhat-waffle": "2.0.2",
+    "@typechain/ethers-v5": "7.2.0",
+    "@typechain/hardhat": "2.3.1",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^12.20.42",
+    "chai": "^4.3.6",
+    "dotenv": "^16.0.1",
+    "dotenv-cli": "5.1.0",
+    "ethereum-waffle": "3.4.0",
+    "ethers": "5.6.8",
+    "hardhat": "2.11.2",
+    "hardhat-gas-reporter": "1.0.8",
+    "hardhat-tracer": "^1.0.0-alpha.6",
+    "prettier": "^2.5.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "solhint": "^3.3.6",
+    "solidity-coverage": "^0.7.20",
+    "ts-node": "^10.4.0",
+    "typechain": "5.2.0",
+    "typescript": "^4.6.4"
   },
   "dependencies": {
-    "@hashgraph/hedera-local": "^2.2.1",
-    "@openzeppelin/contracts": "^4.8.0",
-    "dotenv": "^16.0.3",
-    "solidity-coverage": "^0.8.2"
+    "@hashgraph/hardhat-hethers": "1.0.4",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0-beta.4",
+    "@openzeppelin/contracts": "4.4.2",
+    "@uniswap/v3-core": "1.0.1",
+    "@uniswap/v3-periphery": "1.4.1",
+    "hardhat-contract-sizer": "^2.5.1"
   }
 }
