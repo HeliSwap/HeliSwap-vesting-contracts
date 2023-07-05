@@ -51,6 +51,14 @@ task("startVesting", "Start Vesting")
     );
   });
 
+task("contractData", "Get contract data")
+  .addParam("claimdrop", "Claimdrop contract")
+  .setAction(async (taskArgs) => {
+    const { claimdrop } = taskArgs;
+    const contractData = require("./scripts/contractData");
+    await contractData(claimdrop);
+  });
+
 const accounts = [
   {
     privateKey:

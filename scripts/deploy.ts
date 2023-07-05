@@ -9,8 +9,10 @@ async function deploy(
   console.log("⚙️ Deploying ClaimDrop contract ...");
 
   const ClaimDropFactory = await hardhat.hethers.getContractFactory(
-    "ClaimDrop"
+    "ClaimDrop",
+    { gasLimit: 3_000_000 }
   );
+
   const claimDrop = await (
     await ClaimDropFactory.deploy(tokenAddress, vestingPercentage, lockTime)
   ).deployed();

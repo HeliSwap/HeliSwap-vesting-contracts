@@ -11,7 +11,7 @@ async function addBeneficiaries(
     claimdropAddress
   );
 
-  const tokenAmount = 10000000_00_000_000;
+  const tokenAmount = 100_00_000_000;
 
   // Approve tokens
   console.log(`Approving token...`);
@@ -22,8 +22,8 @@ async function addBeneficiaries(
   await tokenContract.approve(claimdrop.address, tokenAmount);
   console.log(`✅ Token approved!`);
 
-  const beneficiaries = ["0x0000000000000000000000000000000000001b73"];
-  const balances = [hardhat.ethers.utils.parseUnits("10000", 8)];
+  const beneficiaries = ["0x00000000000000000000000000000000001022C8"];
+  const balances = [hardhat.ethers.utils.parseUnits("100", 8)];
 
   await claimdrop.addBeneficiaries(beneficiaries, balances, {
     gasLimit: 3_000_000,
