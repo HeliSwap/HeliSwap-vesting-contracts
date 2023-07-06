@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IClaimDrop {
+    event NotVestedPercentage(uint256 notVestedPercentage);
     event BeneficiariesAdded(address[] beneficiaries, uint256[] balances);
     event VestingStarted(
         uint256 start,
@@ -60,17 +61,15 @@ interface IClaimDrop {
 
     function claim() external;
 
-    function claimable(address beneficiary)
-        external
-        view
-        returns (uint256 availableAllocated);
+    function claimable(
+        address beneficiary
+    ) external view returns (uint256 availableAllocated);
 
     function extraTokensOf(address) external view returns (uint256);
 
-    function totalAllocatedOf(address beneficiary)
-        external
-        view
-        returns (uint256);
+    function totalAllocatedOf(
+        address beneficiary
+    ) external view returns (uint256);
 
     function divest() external;
 

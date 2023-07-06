@@ -59,6 +59,8 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
         index = 1e18;
         token = IERC20(tokenAddress);
         tokensNotVestedPercentage = notVestedPercentage;
+
+        emit NotVestedPercentage(notVestedPercentage);
     }
 
     /// @notice Load all the beneficiaries with their allocation and fund the claim drop before the vesting is started
@@ -178,12 +180,9 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
     /// @dev In the case the balance of the claim drop is bigger that the total amount being allocated to all of the beneficiaries
     /// @dev the difference if getting distributed among the beneficiaries based on their part of the initial allocation
     /// @dev Once the cliff period expires, then the claimable amount starts to accumulate
-    function claimable(address beneficiary)
-        public
-        view
-        override
-        returns (uint256 availableAllocated)
-    {
+    function claimable(
+        address beneficiary
+    ) public view override returns (uint256 availableAllocated) {
         if (
             vestedTokensOf[beneficiary] == 0 ||
             block.timestamp > end + claimExtraTime ||
@@ -215,22 +214,16 @@ contract ClaimDrop is Timelock, ReentrancyGuard, IClaimDrop {
 
     /// @notice In the case the balance of the claim drop is bigger than the total tokens being allocated
     /// @notice calculate the distribution a user should receive from that difference
-    function extraTokensOf(address beneficiary)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function extraTokensOf(
+        address beneficiary
+    ) public view override returns (uint256) {
         return totalAllocatedOf(beneficiary) - vestedTokensOf[beneficiary];
     }
 
     /// @notice Returns the initial allocated tokens plus the ones that could be distributed afterwards
-    function totalAllocatedOf(address beneficiary)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function totalAllocatedOf(
+        address beneficiary
+    ) public view override returns (uint256) {
         return (vestedTokensOf[beneficiary] * index) / 1e18;
     }
 
