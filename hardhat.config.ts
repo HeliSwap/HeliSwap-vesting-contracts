@@ -59,6 +59,11 @@ task("contractData", "Get contract data")
     await contractData(claimdrop);
   });
 
+task("prepareBeneficiaries", "Preparre beneficiaries").setAction(async () => {
+  const prepareBeneficiaries = require("./scripts/prepareBeneficiaries");
+  await prepareBeneficiaries();
+});
+
 const accounts = [
   {
     privateKey:
