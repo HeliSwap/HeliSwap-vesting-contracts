@@ -6,8 +6,8 @@
   "scripts": {
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",
-    "deploy": "npx hardhat deploy --token-address 0x0000000000000000000000000000000000002023 --vesting-percentage 0 --lock-time 0 --network testnet",
-    "addBeneficiaries": "npx hardhat addBeneficiaries --token-address 0x0000000000000000000000000000000000002023 --claimdrop 0x00000000000000000000000000000000002f3169 --network testnet",
+    "deploy": "npx hardhat deploy --token-address 0x000000000000000000000000000000000001d7FA --vesting-percentage 0 --lock-time 0 --network testnet",
+    "addBeneficiaries": "npx hardhat addBeneficiaries --token-address 0x000000000000000000000000000000000001d7FA --claimdrop 0x00000000000000000000000000000000002f3169 --network testnet",
     "startVesting": "npx hardhat startVesting --claimdrop 0x00000000000000000000000000000000002f3169 --vesting-duration 86400 --cliff-duration 0 --claim-extra-duration 604800 --network testnet",
     "contractData": "npx hardhat contractData --claimdrop 0x00000000000000000000000000000000002f3169 --network testnet",
     "coverage": "npx hardhat coverage",
