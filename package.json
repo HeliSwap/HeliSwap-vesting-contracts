@@ -10,6 +10,7 @@
     "addBeneficiaries": "npx hardhat addBeneficiaries --token-address 0x00000000000000000000000000000000001d90C9 --claimdrop 0x00000000000000000000000000000000002f3169 --network mainnet",
     "startVesting": "npx hardhat startVesting --claimdrop 0x00000000000000000000000000000000002f3169 --vesting-duration 86400 --cliff-duration 0 --claim-extra-duration 5184000 --network mainnet",
     "contractData": "npx hardhat contractData --claimdrop 0x00000000000000000000000000000000002f3169 --network mainnet",
+    "divest": "npx hardhat divest --claimdrop 0x00000000000000000000000000000000001f0ea2 --network mainnet",
     "coverage": "npx hardhat coverage",
     "build": "npx hardhat compile",
     "size": "npx hardhat size-contracts",

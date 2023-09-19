@@ -64,6 +64,14 @@ task("prepareBeneficiaries", "Preparre beneficiaries").setAction(async () => {
   await prepareBeneficiaries();
 });
 
+task("divest", "Get unclaimed tokens")
+  .addParam("claimdrop", "Claimdrop contract")
+  .setAction(async (taskArgs) => {
+    const { claimdrop } = taskArgs;
+    const divest = require("./scripts/divest");
+    await divest(claimdrop);
+  });
+
 const accounts = [
   {
     privateKey:
